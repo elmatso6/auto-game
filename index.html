@@ -30,6 +30,7 @@
         canvas {
             display: block;
             background: #333;
+            touch-action: none;
         }
         #ui {
             position: absolute;
@@ -44,7 +45,7 @@
         }
         #settingsIcon {
             position: absolute;
-            top: 10px;
+            top: 45px;
             right: 10px;
             font-size: 24px;
             cursor: pointer;
@@ -119,7 +120,7 @@
         }
         #settingsIcon {
             position: absolute;
-            top: 10px;
+            top: 45px;
             right: 10px;
             font-size: 26px;
             cursor: pointer;
@@ -266,7 +267,7 @@
         const speedThresholds = [100,200,300,400,500,600,700,800,900,1000,1100,1200,1300,1400,1500,1600,1700,1800,1900,2000,2100,2200,2300,2400,2500,2600,2700,2800,2900];
 
         function getSpeedIncrease(score) {
-            return speedThresholds.filter(t => score >= t).length * 0.2;
+            return speedThresholds.filter(t => score >= t).length * 0.3;
         }
 
         // Objects
@@ -408,17 +409,21 @@
 
         // Mobile Touch Support
         let touchStartX = 0;
+        let touchStartY = 0;
         canvas.addEventListener('touchstart', (e) => {
             if (paused) return;
             e.preventDefault();
             touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
         });
         canvas.addEventListener('touchend', (e) => {
             if (paused) return;
             e.preventDefault();
             const touchEndX = e.changedTouches[0].clientX;
+            const touchEndY = e.changedTouches[0].clientY;
             const deltaX = touchEndX - touchStartX;
-            if (Math.abs(deltaX) > 50) { // Mindest-Swipe-Distanz
+            const deltaY = touchEndY - touchStartY;
+            if (Math.abs(deltaX) > 50 && Math.abs(deltaX) > Math.abs(deltaY)) { // Nur klare horizontale Swipes
                 if (deltaX > 0) { // Rechts swipe
                     if (player.lane < lanes.length - 1) {
                         player.lane++;
@@ -584,14 +589,15 @@
                 }
             });
 
-            // Update turbo
-            if (turboActive && Date.now() > turboEndTime) {
-                turboActive = false;
-                currentSpeed = baseSpeed + getSpeedIncrease(score);
-            }
-
-            // Increase speed over time
+            // Update turbo and base speed
             currentSpeed = baseSpeed + getSpeedIncrease(score);
+            if (turboActive) {
+                if (Date.now() > turboEndTime) {
+                    turboActive = false;
+                } else {
+                    currentSpeed *= 1.5;
+                }
+            }
             if (slowMotion) {
                 currentSpeed *= 0.5;
             }
