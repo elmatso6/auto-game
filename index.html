@@ -52,6 +52,116 @@
             color: white;
             z-index: 15;
         }
+        #pauseButton {
+            position: absolute;
+            top: 80px;
+            right: 10px;
+            padding: 6px 10px;
+            font-size: 16px;
+            background: #444;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            z-index: 16;
+        }
+        #menuOverlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.75);
+            display: none;
+            z-index: 18;
+        }
+        #pauseMenu {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 280px;
+            background: rgba(20, 20, 20, 0.97);
+            border: 2px solid #fff;
+            border-radius: 14px;
+            padding: 20px;
+            display: none;
+            z-index: 19;
+            text-align: center;
+        }
+        #startMenu {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 320px;
+            background: rgba(20, 20, 20, 0.97);
+            border: 2px solid #fff;
+            border-radius: 14px;
+            padding: 20px;
+            display: none;
+            z-index: 19;
+            text-align: center;
+        }
+        #startMenu h2 {
+            margin-bottom: 12px;
+            font-size: 26px;
+        }
+        #startMenu .mode-info {
+            text-align: left;
+            margin-top: 10px;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        #startMenu .mission-buttons button {
+            width: 100%;
+            margin-top: 10px;
+        }
+        #startMenu #missionOptions {
+            margin-top: 14px;
+            display: none;
+        }
+        #pauseMenu h2 {
+            margin-bottom: 12px;
+            font-size: 26px;
+        }
+        #pauseMenu button {
+            width: 100%;
+            margin: 8px 0;
+            padding: 10px;
+            font-size: 16px;
+            background: #444;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        #pauseMenu button:hover {
+            background: #666;
+        }
+        #pauseMenu .legend-list {
+            list-style: none;
+            padding: 0;
+            margin: 12px 0 0;
+            text-align: left;
+        }
+        #pauseMenu .legend-list li {
+            margin: 6px 0;
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+        }
+        #pauseMenu .legend-color {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            margin-right: 10px;
+            border-radius: 4px;
+            border: 1px solid #fff;
+        }
+        #pauseMenu .legend-color.shield { background: #00ff00; }
+        #pauseMenu .legend-color.turbo { background: #ffff00; }
+        #pauseMenu .legend-color.points { background: #9b59b6; }
         #settingsMenu {
             position: absolute;
             top: 50px;
@@ -194,7 +304,9 @@
             <div>Lives: <span id="lives">3</span></div>
             <div>Speed: <span id="speed">1.0</span>x</div>
         </div>
+        <div id="missionStatus" style="position:absolute; top: 50px; left: 10px; right: 10px; color: #fff; font-size: 14px; text-align:center; display:none; z-index:10;">Mission: </div>
         <div id="settingsIcon">⚙️</div>
+        <button id="pauseButton">Pause</button>
         <div id="settingsMenu">
             <label for="difficultySelect">Schwierigkeit</label>
             <select id="difficultySelect">
@@ -229,6 +341,74 @@
                 </select>
             </div>
             <button onclick="toggleSettings()">Schließen</button>
+        </div>
+        <div id="menuOverlay"></div>
+        <div id="startMenu">
+            <h2>START</h2>
+            <button onclick="startGame('endless')">Endless Modus</button>
+            <button onclick="showLevelOptions()">Level Modus</button>
+            <button onclick="showMissionOptions()">Missionen</button>
+            <div id="levelOptions" style="display:none; margin-top: 14px; text-align:left;">
+                <div class="mode-info">
+                    <strong>Level-Modus:</strong>
+                    <p>Wähle ein Level, das immer schwerer wird.</p>
+                </div>
+                <label for="levelSelect">Level wählen</label>
+                <select id="levelSelect" onchange="updateLevelInfo()">
+                    <option value="1">Level 1</option>
+                    <option value="2">Level 2</option>
+                    <option value="3">Level 3</option>
+                    <option value="4">Level 4</option>
+                    <option value="5">Level 5</option>
+                    <option value="6">Level 6</option>
+                    <option value="7">Level 7</option>
+                    <option value="8">Level 8</option>
+                    <option value="9">Level 9</option>
+                    <option value="10">Level 10</option>
+                    <option value="11">Level 11</option>
+                    <option value="12">Level 12</option>
+                    <option value="13">Level 13</option>
+                    <option value="14">Level 14</option>
+                    <option value="15">Level 15</option>
+                    <option value="16">Level 16</option>
+                    <option value="17">Level 17</option>
+                    <option value="18">Level 18</option>
+                    <option value="19">Level 19</option>
+                    <option value="20">Level 20</option>
+                </select>
+                <div id="levelInfoText" style="margin-top: 8px; font-size: 13px; color: #eee;">Überleben und Punkte sammeln, um das Level zu beenden.</div>
+                <button onclick="startLevel()">Level starten</button>
+                <div id="completedLevelsText" style="margin-top: 12px; font-size: 13px; color: #9bff9b;">Bisher abgeschlossene Level: Keine</div>
+            </div>
+            <div id="missionOptions">
+                <div class="mode-info">
+                    <strong>Missionen:</strong>
+                    <p>Wähle eine Mission und starte den Missionsmodus.</p>
+                </div>
+                <div class="mission-buttons" style="text-align:left;">
+                <label for="missionSelect">Mission wählen</label>
+                <select id="missionSelect" onchange="updateMissionInfo()" style="width: 100%; padding: 8px; margin-top: 8px; background: #222; color: #fff; border: 1px solid #555; border-radius: 6px;">
+                </select>
+                <div id="missionInfoText" style="margin-top: 10px; font-size: 13px; color: #eee;">Wähle eine Mission aus der Liste.</div>
+                <button onclick="startMission()" style="margin-top: 10px; width: 100%;">Mission starten</button>
+                <div id="completedMissionsText" style="margin-top: 12px; font-size: 13px; color: #9bff9b;">Bisher abgeschlossene Missionen: Keine</div>
+            </div>
+        </div>
+        </div>
+        <div id="pauseMenu">
+            <h2>PAUSE</h2>
+            <button onclick="resumeGame()">Weiter</button>
+            <button onclick="toggleSettings()">Einstellungen</button>
+            <button onclick="openStartMenu()">Zur Startseite</button>
+            <div style="margin: 16px 0; text-align:left;">
+                <strong>Powerup-Farben</strong>
+                <ul class="legend-list">
+                    <li><span class="legend-color shield"></span>Grün = Schild</li>
+                    <li><span class="legend-color turbo"></span>Gelb = Turbo</li>
+                    <li><span class="legend-color points"></span>Violett = Punkte</li>
+                </ul>
+            </div>
+            <button onclick="restartGame()">Neu starten</button>
         </div>
         <div id="pauseOverlay">PAUSE</div>
         <div id="gameOver">
@@ -292,6 +472,42 @@
         let infiniteLives = false;
         let slowMotion = false;
         let spawnRateMultiplier = 1;
+        let gameMode = 'start';
+        let currentLevel = 0;
+        let levelDifficulty = 1;
+        let currentMissionId = 0;
+        let currentMission = '';
+        let missionType = '';
+        let missionTarget = 0;
+        let missionProgress = 0;
+        let missionStartScore = 0;
+        let missionTime = 0;
+        let missionPowerupCount = 0;
+        let levelStartScore = 0;
+        let completedLevels = [];
+        let completedMissions = [];
+        const missions = [
+            { id: 1, title: 'Sammle 100 Punkte', type: 'score', target: 100, description: 'Sammle 100 Punkte.', difficulty: 1 },
+            { id: 2, title: 'Überlebe 20 Sekunden', type: 'time', target: 20, description: 'Halte 20 Sekunden durch.', difficulty: 1 },
+            { id: 3, title: 'Sammle 5 Powerups', type: 'powerup', target: 5, description: 'Sammle 5 Powerups.', difficulty: 1 },
+            { id: 4, title: 'Sammle 250 Punkte', type: 'score', target: 250, description: 'Sammle 250 Punkte.', difficulty: 2 },
+            { id: 5, title: 'Überlebe 30 Sekunden', type: 'time', target: 30, description: 'Halte 30 Sekunden durch.', difficulty: 2 },
+            { id: 6, title: 'Sammle 8 Powerups', type: 'powerup', target: 8, description: 'Sammle 8 Powerups.', difficulty: 2 },
+            { id: 7, title: 'Sammle 500 Punkte', type: 'score', target: 500, description: 'Sammle 500 Punkte.', difficulty: 3 },
+            { id: 8, title: 'Überlebe 40 Sekunden', type: 'time', target: 40, description: 'Halte 40 Sekunden durch.', difficulty: 3 },
+            { id: 9, title: 'Sammle 12 Powerups', type: 'powerup', target: 12, description: 'Sammle 12 Powerups.', difficulty: 3 },
+            { id: 10, title: 'Sammle 800 Punkte', type: 'score', target: 800, description: 'Sammle 800 Punkte.', difficulty: 4 },
+            { id: 11, title: 'Überlebe 50 Sekunden', type: 'time', target: 50, description: 'Halte 50 Sekunden durch.', difficulty: 4 },
+            { id: 12, title: 'Sammle 15 Powerups', type: 'powerup', target: 15, description: 'Sammle 15 Powerups.', difficulty: 4 },
+            { id: 13, title: 'Sammle 1200 Punkte', type: 'score', target: 1200, description: 'Sammle 1200 Punkte.', difficulty: 5 },
+            { id: 14, title: 'Überlebe 60 Sekunden', type: 'time', target: 60, description: 'Halte 60 Sekunden durch.', difficulty: 5 },
+            { id: 15, title: 'Sammle 18 Powerups', type: 'powerup', target: 18, description: 'Sammle 18 Powerups.', difficulty: 5 },
+            { id: 16, title: 'Sammle 1800 Punkte', type: 'score', target: 1800, description: 'Sammle 1800 Punkte.', difficulty: 6 },
+            { id: 17, title: 'Überlebe 75 Sekunden', type: 'time', target: 75, description: 'Halte 75 Sekunden durch.', difficulty: 6 },
+            { id: 18, title: 'Sammle 22 Powerups', type: 'powerup', target: 22, description: 'Sammle 22 Powerups.', difficulty: 6 },
+            { id: 19, title: 'Sammle 2500 Punkte', type: 'score', target: 2500, description: 'Sammle 2500 Punkte.', difficulty: 7 },
+            { id: 20, title: 'Überlebe 90 Sekunden', type: 'time', target: 90, description: 'Halte 90 Sekunden durch.', difficulty: 7 }
+        ];
 
         // Settings Functions
         function resetHighscore() {
@@ -356,7 +572,8 @@
         }
         function toggleSettings() {
             const menu = document.getElementById('settingsMenu');
-            const overlay = document.getElementById('pauseOverlay');
+            const overlay = document.getElementById('menuOverlay');
+            const pauseMenu = document.getElementById('pauseMenu');
             const isOpen = menu.style.display === 'block';
             if (isOpen) {
                 menu.style.display = 'none';
@@ -364,6 +581,7 @@
                 paused = false;
                 lastTime = Date.now();
             } else {
+                pauseMenu.style.display = 'none';
                 menu.style.display = 'block';
                 overlay.style.display = 'block';
                 paused = true;
@@ -372,7 +590,240 @@
                 }
             }
         }
+        function openPauseMenu() {
+            document.getElementById('pauseMenu').style.display = 'block';
+            document.getElementById('menuOverlay').style.display = 'block';
+            document.getElementById('settingsMenu').style.display = 'none';
+            document.getElementById('startMenu').style.display = 'none';
+            document.getElementById('missionOptions').style.display = 'none';
+            document.getElementById('levelOptions').style.display = 'none';
+            document.getElementById('pauseOverlay').style.display = 'none';
+            paused = true;
+        }
+        function openStartMenu() {
+            document.getElementById('startMenu').style.display = 'block';
+            document.getElementById('menuOverlay').style.display = 'block';
+            document.getElementById('pauseMenu').style.display = 'none';
+            document.getElementById('settingsMenu').style.display = 'none';
+            document.getElementById('missionOptions').style.display = 'none';
+            document.getElementById('levelOptions').style.display = 'none';
+            document.getElementById('missionStatus').style.display = 'none';
+            updateCompletedLevelsUI();
+            updateCompletedMissionsUI();
+            paused = true;
+            gameMode = 'start';
+        }
+        function resumeGame() {
+            document.getElementById('pauseMenu').style.display = 'none';
+            document.getElementById('menuOverlay').style.display = 'none';
+            document.getElementById('startMenu').style.display = 'none';
+            paused = false;
+            lastTime = Date.now();
+        }
+        function restartGame() {
+            location.reload();
+        }
+        function showMissionOptions() {
+            document.getElementById('levelOptions').style.display = 'none';
+            document.getElementById('missionOptions').style.display = 'block';
+            renderMissionOptions();
+            updateMissionInfo();
+            updateCompletedMissionsUI();
+        }
+        function showLevelOptions() {
+            document.getElementById('missionOptions').style.display = 'none';
+            document.getElementById('levelOptions').style.display = 'block';
+            updateLevelInfo();
+            updateCompletedLevelsUI();
+        }
+        function startGame(mode) {
+            gameMode = mode;
+            resetLevelState();
+            document.getElementById('startMenu').style.display = 'none';
+            document.getElementById('menuOverlay').style.display = 'none';
+            document.getElementById('pauseOverlay').style.display = 'none';
+            document.getElementById('missionStatus').style.display = 'none';
+            paused = false;
+            lastTime = Date.now();
+        }
+        function startMission() {
+            resetLevelState();
+            const selectedMissionId = Number(document.getElementById('missionSelect').value);
+            const mission = missions.find(m => m.id === selectedMissionId) || missions[0];
+            currentMissionId = mission.id;
+            currentMission = mission.title;
+            missionType = mission.type;
+            missionTarget = mission.target;
+            missionProgress = 0;
+            if (mission.type === 'score') {
+                missionStartScore = score;
+            } else if (mission.type === 'time') {
+                missionTime = 0;
+            } else if (mission.type === 'powerup') {
+                missionPowerupCount = 0;
+            }
+            gameMode = 'missions';
+            document.getElementById('missionStatus').style.display = 'block';
+            document.getElementById('startMenu').style.display = 'none';
+            document.getElementById('menuOverlay').style.display = 'none';
+            document.getElementById('pauseOverlay').style.display = 'none';
+            paused = false;
+            lastTime = Date.now();
+        }
+        function startLevel() {
+            resetLevelState();
+            const level = Number(document.getElementById('levelSelect').value);
+            currentLevel = level;
+            currentMission = `Level ${level}`;
+            missionType = 'level';
+            missionTarget = 10 + level * 2;
+            missionTime = 0;
+            missionProgress = 0;
+            document.getElementById('missionStatus').style.display = 'block';
+            document.getElementById('startMenu').style.display = 'none';
+            document.getElementById('menuOverlay').style.display = 'none';
+            document.getElementById('pauseOverlay').style.display = 'none';
+            paused = false;
+            gameMode = 'level';
+            levelDifficulty = level;
+            baseSpeed = 3 + level * 0.12;
+            spawnRateMultiplier = 1 + level * 0.05;
+            levelStartScore = score;
+            lastTime = Date.now();
+        }
+        function updateLevelInfo() {
+            const level = Number(document.getElementById('levelSelect').value);
+            const time = 10 + level * 2;
+            const speed = (3 + level * 0.12).toFixed(1);
+            document.getElementById('levelInfoText').textContent = `Überlebe ${time} Sekunden. Startgeschwindigkeit: ${speed}. Schwierigkeit steigt mit jedem Level.`;
+            updateCompletedLevelsUI();
+        }
+        function renderMissionOptions() {
+            const missionSelect = document.getElementById('missionSelect');
+            if (!missionSelect) return;
+            missionSelect.innerHTML = '';
+            missions.forEach(m => {
+                const done = completedMissions.includes(m.id);
+                const option = document.createElement('option');
+                option.value = m.id;
+                option.text = `${m.id}. ${m.title}${done ? ' ✅' : ''}`;
+                missionSelect.appendChild(option);
+            });
+        }
+        function updateMissionInfo() {
+            const selectedId = Number(document.getElementById('missionSelect').value);
+            const mission = missions.find(m => m.id === selectedId) || missions[0];
+            document.getElementById('missionInfoText').textContent = `${mission.description} Schwierigkeit: ${mission.difficulty}.`;
+            updateCompletedMissionsUI();
+        }
+        function updateCompletedMissionsUI() {
+            const text = completedMissions.length > 0
+                ? `Bisher abgeschlossene Missionen: ${completedMissions.join(', ')}`
+                : 'Bisher abgeschlossene Missionen: Keine';
+            const completedTextEl = document.getElementById('completedMissionsText');
+            if (completedTextEl) {
+                completedTextEl.textContent = text;
+            }
+            const select = document.getElementById('missionSelect');
+            if (select) {
+                for (let i = 0; i < select.options.length; i++) {
+                    const missionId = Number(select.options[i].value);
+                    const done = completedMissions.includes(missionId);
+                    const mission = missions.find(m => m.id === missionId);
+                    if (mission) {
+                        select.options[i].text = `${mission.id}. ${mission.title}${done ? ' ✅' : ''}`;
+                    }
+                }
+            }
+        }
+        function updateCompletedLevelsUI() {
+            const text = completedLevels.length > 0
+                ? `Bisher abgeschlossene Level: ${completedLevels.join(', ')}`
+                : 'Bisher abgeschlossene Level: Keine';
+            const completedTextEl = document.getElementById('completedLevelsText');
+            if (completedTextEl) {
+                completedTextEl.textContent = text;
+            }
+            const select = document.getElementById('levelSelect');
+            if (select) {
+                for (let i = 0; i < select.options.length; i++) {
+                    const levelValue = Number(select.options[i].value);
+                    const done = completedLevels.includes(levelValue);
+                    select.options[i].text = `Level ${levelValue}${done ? ' ✅' : ''}`;
+                }
+            }
+        }
+        function markLevelCompleted(level) {
+            if (!completedLevels.includes(level)) {
+                completedLevels.push(level);
+                completedLevels.sort((a, b) => a - b);
+                saveProgress();
+            }
+        }
+        function markMissionCompleted(id) {
+            if (!completedMissions.includes(id)) {
+                completedMissions.push(id);
+                completedMissions.sort((a, b) => a - b);
+                saveProgress();
+            }
+        }
+        function saveProgress() {
+            localStorage.setItem('completedLevels', JSON.stringify(completedLevels));
+            localStorage.setItem('completedMissions', JSON.stringify(completedMissions));
+        }
+        function loadProgress() {
+            try {
+                completedLevels = JSON.parse(localStorage.getItem('completedLevels')) || [];
+            } catch (e) {
+                completedLevels = [];
+            }
+            try {
+                completedMissions = JSON.parse(localStorage.getItem('completedMissions')) || [];
+            } catch (e) {
+                completedMissions = [];
+            }
+        }
+        function resetLevelState() {
+            score = 0;
+            scoreAccumulator = 0;
+            lives = 3;
+            obstacles = [];
+            powerUps = [];
+            coins = [];
+            turboActive = false;
+            shieldActive = false;
+            slowMotion = false;
+            currentSpeed = baseSpeed;
+            missionProgress = 0;
+            missionTime = 0;
+            missionPowerupCount = 0;
+            document.getElementById('score').textContent = score;
+            document.getElementById('lives').textContent = lives;
+            document.getElementById('speed').textContent = (currentSpeed / baseSpeed).toFixed(1);
+        }
         document.getElementById('settingsIcon').addEventListener('click', toggleSettings);
+        document.getElementById('pauseButton').addEventListener('click', openPauseMenu);
+        loadProgress();
+        openStartMenu();
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'p' || e.key === 'Escape') {
+                const pauseMenu = document.getElementById('pauseMenu');
+                const settingsMenu = document.getElementById('settingsMenu');
+                const overlay = document.getElementById('menuOverlay');
+                if (settingsMenu.style.display === 'block') {
+                    settingsMenu.style.display = 'none';
+                    overlay.style.display = 'none';
+                    paused = false;
+                    lastTime = Date.now();
+                    return;
+                }
+                if (pauseMenu.style.display === 'block') {
+                    resumeGame();
+                    return;
+                }
+                openPauseMenu();
+            }
+        });
 
         function applySettings() {
             const difficultySelect = document.getElementById('difficultySelect');
@@ -455,7 +906,8 @@
         // Spawn PowerUps
         function spawnPowerUp() {
             const lane = lanes[Math.floor(Math.random() * lanes.length)];
-            const type = 'shield'; // Nur Shield spawnen
+            const rand = Math.random();
+            const type = rand < 0.55 ? 'shield' : rand < 0.95 ? 'turbo' : 'points';
             powerUps.push({
                 x: lane - 15,
                 y: -30,
@@ -505,8 +957,19 @@
         // Draw PowerUps
         function drawPowerUps() {
             powerUps.forEach(pu => {
-                ctx.fillStyle = pu.type === 'turbo' ? '#ffff00' : '#00ff00';
+                if (pu.type === 'turbo') {
+                    ctx.fillStyle = '#ffff00';
+                } else if (pu.type === 'points') {
+                    ctx.fillStyle = '#9b59b6';
+                } else {
+                    ctx.fillStyle = '#00ff00';
+                }
                 ctx.fillRect(pu.x, pu.y, pu.width, pu.height);
+                ctx.fillStyle = '#000';
+                ctx.font = 'bold 14px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(pu.type === 'turbo' ? 'T' : pu.type === 'points' ? 'P' : 'S', pu.x + pu.width / 2, pu.y + pu.height / 2);
             });
         }
 
@@ -581,13 +1044,40 @@
                     if (pu.type === 'turbo') {
                         turboActive = true;
                         turboEndTime = Date.now() + 3000;
-                        currentSpeed = baseSpeed * 1.5;
-                    } else if (pu.type === 'shield') {
+                            } else if (pu.type === 'shield') {
                         shieldActive = true;
+                    } else if (pu.type === 'points') {
+                        score += 500;
+                    }
+                    if (gameMode === 'missions' && missionType === 'powerup') {
+                        missionPowerupCount += 1;
                     }
                     powerUps.splice(idx, 1);
                 }
             });
+
+            // Update mission / level progress
+            if (gameMode === 'missions' || gameMode === 'level') {
+                if (missionType === 'score') {
+                    missionProgress = Math.min(score - missionStartScore, missionTarget);
+                } else if (missionType === 'time' || missionType === 'level') {
+                    missionTime += deltaTime;
+                    missionProgress = Math.min(missionTime / 1000, missionTarget);
+                } else if (missionType === 'powerup') {
+                    missionProgress = Math.min(missionPowerupCount, missionTarget);
+                }
+                const label = gameMode === 'level' ? 'Level' : 'Mission';
+                document.getElementById('missionStatus').textContent = `${label}: ${currentMission} (${Math.floor(missionProgress)}/${missionTarget})`;
+                if (missionProgress >= missionTarget) {
+                    if (gameMode === 'level') {
+                        markLevelCompleted(currentLevel);
+                    } else if (gameMode === 'missions') {
+                        markMissionCompleted(currentMissionId);
+                    }
+                    alert(`${label} geschafft!`);
+                    openStartMenu();
+                }
+            }
 
             // Update turbo and base speed
             currentSpeed = baseSpeed + getSpeedIncrease(score);
