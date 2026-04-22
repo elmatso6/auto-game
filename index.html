@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Endless Road - Survival Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: #1a1a1a;
+            font-family: Arial, sans-serif;
+            color: white;
+        }
+        #gameContainer {
+            position: relative;
+            width: 400px;
+            height: 600px;
+            background: #2a2a2a;
+            border: 3px solid #fff;
+            overflow: hidden;
+        }
+        canvas {
+            display: block;
+            background: #333;
+        }
+        #ui {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 18px;
+            font-weight: bold;
+            z-index: 10;
+        }
+        #settingsIcon {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 24px;
+            cursor: pointer;
+            color: white;
+            z-index: 15;
+        }
+        #settingsMenu {
+            position: absolute;
+            top: 50px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.9);
+            border: 1px solid #fff;
+            padding: 10px;
+            display: none;
+            z-index: 20;
+        }
+        #settingsMenu button {
+            display: block;
+            margin: 5px 0;
+            padding: 5px 10px;
+            background: #444;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        #settingsMenu button:hover {
+            background: #666;
+        }
+        #gameOver {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            padding: 40px;
+            border-radius: 10px;
+            text-align: center;
+            z-index: 100;
+            display: none;
+        }
+        #gameOver h1 {
+            font-size: 32px;
+            margin-bottom: 20px;
+        }
+        #gameOver p {
+            font-size: 20px;
+            margin: 10px 0;
+        }
+        #gameOver #leaderboard {
+            margin-top: 20px;
+            text-align: left;
+        }
+        #gameOver #leaderboard h2 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        #gameOver #leaderboard ol {
+            padding-left: 20px;
+        }
+        #gameOver #leaderboard li {
+            font-size: 18px;
+        }
+        #gameOver button {
+            margin-top: 20px;
+            padding: 10px 30px;
+            font-size: 16px;
+            background: #ff6b6b;
+            border: none;
+            color: white;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        #settingsIcon {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 26px;
+            cursor: pointer;
+            color: white;
+            z-index: 15;
+        }
+        #settingsMenu {
+            position: absolute;
+            top: 50px;
+            right: 10px;
+            bottom: 10px;
+            width: 220px;
+            max-height: calc(100% - 60px);
+            background: rgba(0, 0, 0, 0.95);
+            border: 1px solid #fff;
+            padding: 15px;
+            display: none;
+            z-index: 20;
+            border-radius: 10px;
+            overflow-y: auto;
+            touch-action: pan-y;
+            overscroll-behavior: contain;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 20px;
+        }
+        #settingsMenu label,
+        #settingsMenu select,
+        #settingsMenu button {
+            display: block;
+            width: 100%;
+            margin: 8px 0;
+        }
+        #settingsMenu select {
+            background: #222;
+            color: white;
+            border: 1px solid #666;
+            padding: 6px;
+            border-radius: 5px;
+        }
+        #settingsMenu button {
+            padding: 8px 10px;
+            background: #444;
+            border: none;
+            color: white;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        #settingsMenu button:hover {
+            background: #666;
+        }
+        #pauseOverlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 12px;
+            font-size: 24px;
+            display: none;
+            z-index: 18;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas" width="400" height="600"></canvas>
+        <div id="ui">
+            <div>Score: <span id="score">0</span></div>
+            <div>Lives: <span id="lives">3</span></div>
+            <div>Speed: <span id="speed">1.0</span>x</div>
+        </div>
+        <div id="settingsIcon">⚙️</div>
+        <div id="settingsMenu">
+            <label for="difficultySelect">Schwierigkeit</label>
+            <select id="difficultySelect">
+                <option value="4">Easy</option>
+                <option value="5">Normal</option>
+                <option value="6">Schwer</option>
+            </select>
+            <label for="vehicleColorSelect">Fahrzeugfarbe</label>
+            <select id="vehicleColorSelect">
+                <option value="#ff0000">Rot</option>
+                <option value="#00ff00">Grün</option>
+                <option value="#0099ff">Blau</option>
+                <option value="#ffff00">Gelb</option>
+            </select>
+            <button onclick="resetHighscore()">Highscore zurücksetzen</button>
+            <button onclick="resetLeaderboard()">Rangliste zurücksetzen</button>
+            <button onclick="promptDevCode()">Dev-Modus</button>
+            <div id="devOptions" style="display:none; margin-top:10px; border-top:1px solid #555; padding-top:10px;">
+                <strong>Dev-Optionen</strong>
+                <button onclick="addLives()">+5 Leben</button>
+                <button onclick="addScore()">+1000 Punkte</button>
+                <button onclick="fillShield()">Schild aktivieren</button>
+                <button onclick="clearObstacles()">Hindernisse entfernen</button>
+                <button onclick="resetGameSpeed()">Geschwindigkeit normal</button>
+                <label><input type="checkbox" id="infiniteLivesCheckbox" onchange="toggleInfiniteLives()"> Unbegrenzte Leben</label>
+                <label><input type="checkbox" id="slowMotionCheckbox" onchange="toggleSlowMotion()"> Zeitlupe</label>
+                <label for="spawnRateSelect">Spawn-Rate</label>
+                <select id="spawnRateSelect" onchange="setSpawnRate()">
+                    <option value="1">Normal</option>
+                    <option value="0.5">Weniger</option>
+                    <option value="2">Mehr</option>
+                </select>
+            </div>
+            <button onclick="toggleSettings()">Schließen</button>
+        </div>
+        <div id="pauseOverlay">PAUSE</div>
+        <div id="gameOver">
+            <h1>GAME OVER!</h1>
+            <p>Score: <span id="finalScore">0</span></p>
+            <p>Highscore: <span id="highScore">0</span></p>
+            <div id="leaderboard"></div>
+            <button onclick="location.reload()">Neu Starten</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Game Variables
+        let gameRunning = true;
+        let score = 0;
+        let lives = 3;
+        let baseSpeed = 4;
+        let currentSpeed = baseSpeed;
+        let scrollOffset = 0;
+
+        // Player
+        const player = {
+            x: canvas.width / 2 - 20,
+            y: canvas.height - 80,
+            width: 40,
+            height: 60,
+            speed: 8,
+            lane: 1
+        };
+
+        const lanes = [80, 160, 240, 320];
+        const laneWidth = 80;
+        const speedThresholds = [100,200,300,400,500,600,700,800,900,1000,1100,1200,1300,1400,1500,1600,1700,1800,1900,2000,2100,2200,2300,2400,2500,2600,2700,2800,2900];
+
+        function getSpeedIncrease(score) {
+            return speedThresholds.filter(t => score >= t).length * 0.2;
+        }
+
+        // Objects
+        let obstacles = [];
+        let powerUps = [];
+        let coins = [];
+        let spawnCounter = 0;
+
+        // Powerups
+        let turboActive = false;
+        let turboEndTime = 0;
+        let shieldActive = false;
+
+        // Highscore
+        let highScore = localStorage.getItem('highScore') || 0;
+        let scores = JSON.parse(localStorage.getItem('scores')) || [];
+        let lastTime = Date.now();
+        let scoreAccumulator = 0;
+        let paused = false;
+        let vehicleColor = '#ff0000';
+        let devUnlocked = false;
+        let infiniteLives = false;
+        let slowMotion = false;
+        let spawnRateMultiplier = 1;
+
+        // Settings Functions
+        function resetHighscore() {
+            localStorage.removeItem('highScore');
+            highScore = 0;
+            document.getElementById('highScore').textContent = highScore;
+            alert('Highscore zurückgesetzt!');
+        }
+        function resetLeaderboard() {
+            localStorage.removeItem('scores');
+            scores = [];
+            alert('Rangliste zurückgesetzt!');
+        }
+        function promptDevCode() {
+            const code = prompt('Gib den Dev-Code ein:');
+            if (code === null) return;
+            if (code === '4123') {
+                devUnlocked = true;
+                document.getElementById('devOptions').style.display = 'block';
+                alert('Dev-Modus aktiviert!');
+            } else {
+                alert('Falscher Code.');
+            }
+        }
+        function addLives() {
+            lives += 5;
+            alert('+5 Leben hinzugefügt');
+        }
+        function addScore() {
+            score += 1000;
+            alert('+1000 Punkte hinzugefügt');
+        }
+        function fillShield() {
+            shieldActive = true;
+            alert('Schild aktiviert');
+        }
+        function clearObstacles() {
+            obstacles = [];
+            alert('Alle Hindernisse entfernt');
+        }
+        function toggleInfiniteLives() {
+            infiniteLives = document.getElementById('infiniteLivesCheckbox').checked;
+            alert('Unbegrenzte Leben ' + (infiniteLives ? 'aktiviert' : 'deaktiviert'));
+        }
+        function toggleSlowMotion() {
+            slowMotion = document.getElementById('slowMotionCheckbox').checked;
+            alert('Zeitlupe ' + (slowMotion ? 'aktiviert' : 'deaktiviert'));
+        }
+        function setSpawnRate() {
+            spawnRateMultiplier = Number(document.getElementById('spawnRateSelect').value);
+            alert('Spawn-Rate gesetzt: ' + spawnRateMultiplier + 'x');
+        }
+        function activateInvincible() {
+            shieldActive = true;
+            alert('Unverwundbarkeit aktiviert!');
+        }
+        function resetGameSpeed() {
+            baseSpeed = 4;
+            currentSpeed = baseSpeed + getSpeedIncrease(score);
+            document.getElementById('difficultySelect').value = '4';
+            alert('Geschwindigkeit zurückgesetzt');
+        }
+        function toggleSettings() {
+            const menu = document.getElementById('settingsMenu');
+            const overlay = document.getElementById('pauseOverlay');
+            const isOpen = menu.style.display === 'block';
+            if (isOpen) {
+                menu.style.display = 'none';
+                overlay.style.display = 'none';
+                paused = false;
+                lastTime = Date.now();
+            } else {
+                menu.style.display = 'block';
+                overlay.style.display = 'block';
+                paused = true;
+                if (devUnlocked) {
+                    document.getElementById('devOptions').style.display = 'block';
+                }
+            }
+        }
+        document.getElementById('settingsIcon').addEventListener('click', toggleSettings);
+
+        function applySettings() {
+            const difficultySelect = document.getElementById('difficultySelect');
+            const colorSelect = document.getElementById('vehicleColorSelect');
+            baseSpeed = Number(difficultySelect.value);
+            vehicleColor = colorSelect.value;
+        }
+
+        document.getElementById('difficultySelect').addEventListener('change', () => {
+            applySettings();
+        });
+        document.getElementById('vehicleColorSelect').addEventListener('change', () => {
+            applySettings();
+        });
+
+        // Input
+        const keys = {};
+        window.addEventListener('keydown', (e) => {
+            if (paused) return;
+            keys[e.key] = true;
+            if (e.key === 'ArrowLeft' || e.key === 'a') {
+                if (player.lane > 0) {
+                    player.lane--;
+                    player.x = lanes[player.lane] - 20;
+                }
+            }
+            if (e.key === 'ArrowRight' || e.key === 'd') {
+                if (player.lane < lanes.length - 1) {
+                    player.lane++;
+                    player.x = lanes[player.lane] - 20;
+                }
+            }
+        });
+
+        // Mobile Touch Support
+        let touchStartX = 0;
+        canvas.addEventListener('touchstart', (e) => {
+            if (paused) return;
+            e.preventDefault();
+            touchStartX = e.touches[0].clientX;
+        });
+        canvas.addEventListener('touchend', (e) => {
+            if (paused) return;
+            e.preventDefault();
+            const touchEndX = e.changedTouches[0].clientX;
+            const deltaX = touchEndX - touchStartX;
+            if (Math.abs(deltaX) > 50) { // Mindest-Swipe-Distanz
+                if (deltaX > 0) { // Rechts swipe
+                    if (player.lane < lanes.length - 1) {
+                        player.lane++;
+                        player.x = lanes[player.lane] - 20;
+                    }
+                } else { // Links swipe
+                    if (player.lane > 0) {
+                        player.lane--;
+                        player.x = lanes[player.lane] - 20;
+                    }
+                }
+            }
+        });
+
+        // Spawn Obstacles
+        function spawnObstacle() {
+            const lane = lanes[Math.floor(Math.random() * lanes.length)];
+            const type = Math.random() > 0.7 ? 'barrier' : 'car';
+            obstacles.push({
+                x: lane - 20,
+                y: -60,
+                width: 40,
+                height: 60,
+                type: type,
+                speed: type === 'car' ? currentSpeed - 1 : 0
+            });
+        }
+
+        // Spawn PowerUps
+        function spawnPowerUp() {
+            const lane = lanes[Math.floor(Math.random() * lanes.length)];
+            const type = 'shield'; // Nur Shield spawnen
+            powerUps.push({
+                x: lane - 15,
+                y: -30,
+                width: 30,
+                height: 30,
+                type: type
+            });
+        }
+
+        // Draw Road
+        function drawRoad() {
+            ctx.fillStyle = '#444';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.strokeStyle = '#ffff00';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([20, 10]);
+            for (let i = 0; i < lanes.length - 1; i++) {
+                ctx.beginPath();
+                ctx.moveTo(lanes[i] + 40, scrollOffset % 30);
+                ctx.lineTo(lanes[i] + 40, scrollOffset % 30 + canvas.height);
+                ctx.stroke();
+            }
+            ctx.setLineDash([]);
+        }
+
+        // Draw Player
+        function drawPlayer() {
+            ctx.fillStyle = vehicleColor;
+            ctx.fillRect(player.x, player.y, player.width, player.height);
+            
+            if (shieldActive) {
+                ctx.strokeStyle = '#00ff00';
+                ctx.lineWidth = 3;
+                ctx.strokeRect(player.x - 5, player.y - 5, player.width + 10, player.height + 10);
+            }
+        }
+
+        // Draw Obstacles
+        function drawObstacles() {
+            obstacles.forEach(obs => {
+                ctx.fillStyle = obs.type === 'car' ? '#0099ff' : '#8b4513';
+                ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
+            });
+        }
+
+        // Draw PowerUps
+        function drawPowerUps() {
+            powerUps.forEach(pu => {
+                ctx.fillStyle = pu.type === 'turbo' ? '#ffff00' : '#00ff00';
+                ctx.fillRect(pu.x, pu.y, pu.width, pu.height);
+            });
+        }
+
+        // Collision Detection
+        function checkCollision(rect1, rect2) {
+            return rect1.x < rect2.x + rect2.width &&
+                   rect1.x + rect1.width > rect2.x &&
+                   rect1.y < rect2.y + rect2.height &&
+                   rect1.y + rect1.height > rect2.y;
+        }
+
+        // Update
+        function update() {
+            if (!gameRunning || paused) {
+                lastTime = Date.now();
+                return;
+            }
+
+            let currentTime = Date.now();
+            let deltaTime = currentTime - lastTime;
+            lastTime = currentTime;
+
+            scoreAccumulator += deltaTime / 1000 * 10; // 10 Punkte pro Sekunde
+            score += Math.floor(scoreAccumulator);
+            scoreAccumulator -= Math.floor(scoreAccumulator);
+
+            scrollOffset += currentSpeed;
+
+            // Spawn obstacles
+            spawnCounter++;
+            let spawnThreshold = 60 - Math.min(score / 500, 40);
+            spawnThreshold = Math.max(15, spawnThreshold / spawnRateMultiplier);
+            if (spawnCounter > spawnThreshold) {
+                spawnObstacle();
+                spawnCounter = 0;
+            }
+
+            // Spawn powerups
+            if (Math.random() < 0.005) spawnPowerUp();
+
+            // Update obstacles
+            obstacles.forEach((obs, idx) => {
+                obs.y += obs.speed || currentSpeed;
+                if (obs.y > canvas.height) obstacles.splice(idx, 1);
+            });
+
+            // Update powerups
+            powerUps.forEach((pu, idx) => {
+                pu.y += currentSpeed;
+                if (pu.y > canvas.height) powerUps.splice(idx, 1);
+            });
+
+            // Check collisions with obstacles
+            obstacles.forEach((obs, idx) => {
+                if (checkCollision(player, obs)) {
+                    if (shieldActive) {
+                        shieldActive = false;
+                        obstacles.splice(idx, 1);
+                    } else {
+                        if (!infiniteLives) {
+                            lives--;
+                            if (lives <= 0) gameRunning = false;
+                        }
+                        obstacles.splice(idx, 1);
+                    }
+                }
+            });
+
+            // Check collisions with powerups
+            powerUps.forEach((pu, idx) => {
+                if (checkCollision(player, pu)) {
+                    if (pu.type === 'turbo') {
+                        turboActive = true;
+                        turboEndTime = Date.now() + 3000;
+                        currentSpeed = baseSpeed * 1.5;
+                    } else if (pu.type === 'shield') {
+                        shieldActive = true;
+                    }
+                    powerUps.splice(idx, 1);
+                }
+            });
+
+            // Update turbo
+            if (turboActive && Date.now() > turboEndTime) {
+                turboActive = false;
+                currentSpeed = baseSpeed + getSpeedIncrease(score);
+            }
+
+            // Increase speed over time
+            currentSpeed = baseSpeed + getSpeedIncrease(score);
+            if (slowMotion) {
+                currentSpeed *= 0.5;
+            }
+
+            // Update UI
+            document.getElementById('score').textContent = score;
+            document.getElementById('lives').textContent = lives;
+            document.getElementById('speed').textContent = (currentSpeed / baseSpeed).toFixed(1);
+        }
+
+        // Draw
+        function draw() {
+            drawRoad();
+            drawObstacles();
+            drawPowerUps();
+            drawPlayer();
+        }
+
+        // Game Loop
+        function gameLoop() {
+            update();
+            draw();
+
+            if (!gameRunning) {
+                document.getElementById('gameOver').style.display = 'block';
+                document.getElementById('finalScore').textContent = score;
+                if (score > highScore) {
+                    highScore = score;
+                    localStorage.setItem('highScore', highScore);
+                }
+                document.getElementById('highScore').textContent = highScore;
+                scores.push(score);
+                scores.sort((a, b) => b - a);
+                scores = scores.slice(0, 10);
+                localStorage.setItem('scores', JSON.stringify(scores));
+                let leaderboardHTML = '<h2>Rangliste</h2><ol>';
+                scores.forEach((s, i) => {
+                    leaderboardHTML += `<li>${i+1}. ${s}</li>`;
+                });
+                leaderboardHTML += '</ol>';
+                document.getElementById('leaderboard').innerHTML = leaderboardHTML;
+                return;
+            }
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        gameLoop();
+    </script>
+</body>
+</html>
