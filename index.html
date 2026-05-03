@@ -65,6 +65,19 @@
             cursor: pointer;
             z-index: 16;
         }
+        #menuButton {
+            position: absolute;
+            top: 115px;
+            right: 10px;
+            padding: 6px 10px;
+            font-size: 16px;
+            background: #444;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            z-index: 16;
+        }
         #menuOverlay {
             position: absolute;
             top: 0;
@@ -307,6 +320,7 @@
         <div id="missionStatus" style="position:absolute; top: 50px; left: 10px; right: 10px; color: #fff; font-size: 14px; text-align:center; display:none; z-index:10;">Mission: </div>
         <div id="settingsIcon">⚙️</div>
         <button id="pauseButton">Pause</button>
+        <button id="menuButton">← Menü</button>
         <div id="settingsMenu">
             <label for="difficultySelect">Schwierigkeit</label>
             <select id="difficultySelect">
@@ -803,6 +817,9 @@
         }
         document.getElementById('settingsIcon').addEventListener('click', toggleSettings);
         document.getElementById('pauseButton').addEventListener('click', openPauseMenu);
+        document.getElementById('menuButton').addEventListener('click', () => {
+            window.location.href = '../index.html';
+        });
         loadProgress();
         openStartMenu();
         window.addEventListener('keydown', (e) => {
